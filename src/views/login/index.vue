@@ -113,19 +113,18 @@ export default {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
           this.loading = true;
-          this.$store
-            .dispatch("user/login", this.loginForm)
-            .then(() => {
-              this.$router.push({
-                path: this.redirect || "/",
-                query: this.otherQuery,
-              });
+          this.$store.dispatch("user/login", this.loginForm).then((res) => {
+            if (res.code == 1) {
+              this.$message.error(res.data.msg);
               this.loading = false;
-            })
-            .catch((err) => {
-              // this.$message.error(err);
-              this.loading = false;
+              return false;
+            }
+            this.$router.push({
+              path: this.redirect || "/",
+              query: this.otherQuery,
             });
+            this.loading = false;
+          });
         } else {
           console.log("error submit!!");
           return false;

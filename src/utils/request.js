@@ -1,12 +1,12 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
+import { getToken, removeToken } from '@/utils/auth'
 import router from '@/router'
 
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API,
-  timeout: 1800000
+  timeout: 1800000,
 })
 service.interceptors.request.use(
   config => {
@@ -51,7 +51,10 @@ service.interceptors.response.use(
         break
       default:
     }
-    return res
+    if (res.data.code == 2) {
+      callback.reLogin('您的登录已过期，请重新登录')
+    }
+    return res.data
   },
   error => {
     console.log(error)
@@ -90,7 +93,7 @@ service.interceptors.response.use(
         }*/
     /*let result = error.response ? error.response.data.message : error
     if(error.response.data.message){
-
+  
     }*/
     let result = null
     if (error.response) {

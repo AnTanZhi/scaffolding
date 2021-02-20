@@ -1,3 +1,5 @@
+import { isNull } from "@/utils/utils"
+
 const publicMixin = {
   data() {
     return {
@@ -5,7 +7,7 @@ const publicMixin = {
       /* 总条数 */ total: 0,
       /* 列表数据 */ tableData: [],
       /* 添加/修改按钮加载中 */ btnLoading: false,
-      /* 添加/修改对话框 */ addOrUpdateDig: false,
+      /* 添加/修改对话框 */ setDig: false,
       /* 对话框标题 */ title: "",
       /* 后端返回的当前页 */ current: 0,
       /* 后端返回的总页码 */ pages: 0,
@@ -19,7 +21,7 @@ const publicMixin = {
     publicSelect(total = true) {
       this.loading = true
       this.mixinParams.api[this.mixinParams.name](this.selectParams).then(res => {
-        this.tableData = res.data.records || res.data
+        this.tableData = res.data == undefined ? res : res.data.records
         this.loading = false
         if (total) {
           this.total = res.data.total
@@ -52,7 +54,7 @@ const publicMixin = {
         this.$message.success('操作成功')
         this.btnLoading = false
         if (dig) {
-          this.addOrUpdateDig = false
+          this.setDig = false
           this.publicSelect()
         } else this.$router.push({
           path: url.path,

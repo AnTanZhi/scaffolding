@@ -1,17 +1,12 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 Vue.use(Router)
-import Layout from '@/layout'
-import rongZiCanShu from './modules/rongZiCanShu'
-// import xiTongSheZhi from './modules/xiTongSheZhi'
-import rongZiGuanLi from './modules/rongZiGuanLi'
-import duiWaiDanBao from './modules/duiWaiDanBao'
-import home from './modules/home'
+import xiTongSheZhi from './modules/xiTongSheZhi'
 export const constantRoutes = [
   {
     path: '/',
     hidden: true,
-    redirect: '/home/index'
+    redirect: '/system/log'
   },
   {
     path: '/login',
@@ -28,16 +23,8 @@ export const constantRoutes = [
     component: () => import('@/views/error-page/401'),
     hidden: true
   },
-  /* 首页 */
-  home,
-  /* 融资管理 */
-  rongZiGuanLi,
-  /* 融资参数 */
-  rongZiCanShu,
-  /* 对外担保 */
-  duiWaiDanBao,
   /* 系统设置 */
-  // xiTongSheZhi,
+  xiTongSheZhi,
 ]
 const createRouter = () => new Router({
   scrollBehavior: () => ({ y: 0 }),
