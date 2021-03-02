@@ -1,60 +1,51 @@
 <template>
-  <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on"
-      label-position="left">
-      <div class="title-container">
-        <h3 class="title">账号密码登录</h3>
-      </div>
-      <el-form-item prop="username">
-        <span class="svg-container">
-          <svg-icon icon-class="user" />
-        </span>
-        <el-input ref="username" v-model="loginForm.username" placeholder="用户名" name="username" type="text" tabindex="1"
-          autocomplete="on" />
-      </el-form-item>
-      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
-        <el-form-item prop="password">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
+  <div class="bo">
+    <div style="color:#fff" class="logo">
+      <span style="margin-right:20px"><img src="../../icons/下载.png" alt="" /></span>
+      <span style="font-size:30px;letter-spacing: 5px;">远颂科技有限公司</span>
+    </div>
+    <div class="box">
+      <div class="login">
+        <div>
+          <el-input placeholder="用户名" v-model="loginForm.username" ref="username" name="username" type="text"
+            tabindex="1" clearable autocomplete="on">
+            <i slot="prefix" class="el-input__icon el-icon-user" />
+          </el-input>
           <el-input :key="passwordType" ref="password" v-model="loginForm.password" :type="passwordType"
-            placeholder="密码" name="password" tabindex="2" autocomplete="on" @keyup.native="checkCapslock"
-            @blur="capsTooltip = false" @keyup.enter.native="handleLogin" />
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-          </span>
-        </el-form-item>
-      </el-tooltip>
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;"
-        @click.native.prevent="handleLogin">登 录</el-button>
-    </el-form>
+            placeholder="密码" clearable name="password" tabindex="2" autocomplete="on" @keyup.native="checkCapslock"
+            @blur="capsTooltip = false" @keyup.enter.native="handleLogin">
+            <i slot="prefix" class="el-input__icon el-icon-lock" />
+          </el-input>
+        </div>
+        <div style="display:flex;align-items: center;margin-bottom:20px;justify-content: space-between;">
+          <el-input v-model="yzm" placeholder="验证码" class="input" clearable style="width:50%" />
+          <div @click="refreshCode" style="height:36px">
+            <index :identifyCode="identifyCode" />
+          </div>
+        </div>
+        <el-button :loading="loading" type="primary" @click.native.prevent="handleLogin"
+          style="width:100%;border-radius: 10px;">登 录
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { validUsername } from "@/utils/validate";
 import SocialSign from "./components/SocialSignin";
+import system from "@/api/system";
+import index from "./components/index";
+import { isNull } from "@/utils/utils";
 
 export default {
   name: "Login",
-  components: { SocialSign },
+  components: { SocialSign, index },
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (value == "")
-        if (!validUsername(value)) {
-          callback(new Error("请输入正确的用户名"));
-        } else {
-          callback();
-        }
-    };
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error("密码不能少于6位数字"));
-      } else {
-        callback();
-      }
-    };
     return {
+      yzm: "",
+      /* 验证码 */ identifyCodes: "1234567890",
+      identifyCode: "",
       loginForm: {
         username: "",
         password: "",
@@ -63,9 +54,7 @@ export default {
         userLogin: [
           { required: true, trigger: "blur", message: "请输入用户名" },
         ],
-        password: [
-          { required: true, trigger: "blur", validator: validatePassword },
-        ],
+        password: [{ required: true, trigger: "blur", message: "请输入密码" }],
       },
       passwordType: "password",
       capsTooltip: false,
@@ -88,6 +77,8 @@ export default {
     },
   },
   mounted() {
+    this.identifyCode = "";
+    this.makeCode(this.identifyCodes, 4);
     if (this.loginForm.username === "") {
       this.$refs.username.focus();
     } else if (this.loginForm.password === "") {
@@ -95,6 +86,26 @@ export default {
     }
   },
   methods: {
+    // 刷新验证码
+    refreshCode() {
+      this.identifyCode = "";
+      this.makeCode(this.identifyCodes, 4);
+    },
+    // 验证码处理
+    randomNum(min, max) {
+      return Math.floor(Math.random() * (max - min) + min);
+    },
+    makeCode(o, l) {
+      for (let i = 0; i < l; i++) {
+        this.identifyCode += this.identifyCodes[
+          this.randomNum(0, this.identifyCodes.length)
+        ];
+      }
+      console.log(this.identifyCode);
+    },
+    isCle() {
+      this.loginForm = { username: "", password: "" };
+    },
     checkCapslock(e) {
       const { key } = e;
       this.capsTooltip = key && key.length === 1 && key >= "A" && key <= "Z";
@@ -110,26 +121,36 @@ export default {
       });
     },
     handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid) {
-          this.loading = true;
-          this.$store.dispatch("user/login", this.loginForm).then((res) => {
-            if (res.code == 1) {
-              this.$message.error(res.data.msg);
-              this.loading = false;
-              return false;
-            }
-            this.$router.push({
-              path: this.redirect || "/",
-              query: this.otherQuery,
-            });
+      if (isNull(this.loginForm.username)) {
+        this.$message.error("用户名不能为空");
+        return false;
+      }
+      if (isNull(this.loginForm.password)) {
+        this.$message.error("密码不能为空");
+        return false;
+      }
+      this.loading = true;
+      if (this.yzm == this.identifyCode) {
+        this.$store.dispatch("user/login", this.loginForm).then((res) => {
+          if (res.code == 1) {
+            this.$message.error(res.msg);
             this.loading = false;
+            return false;
+          }
+          system.getCurrLoginMenu().then((res) => {
+            sessionStorage.setItem("caiDan", JSON.stringify(res.data));
           });
-        } else {
-          console.log("error submit!!");
-          return false;
-        }
-      });
+          this.$router.push({
+            path: this.redirect || "/",
+            query: this.otherQuery,
+          });
+          this.loading = false;
+        });
+      } else {
+        this.$message.error(`验证码不正确`);
+        this.refreshCode();
+        this.loading = false;
+      }
     },
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
@@ -188,76 +209,34 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-$bg: #2d3a4b;
-$dark_gray: #889aa4;
-$light_gray: #eee;
-
-.login-container {
-  min-height: 100%;
-  width: 100%;
-  background-color: $bg;
-  overflow: hidden;
-
-  .login-form {
-    position: relative;
-    width: 520px;
-    max-width: 100%;
-    padding: 160px 35px 0;
-    margin: 0 auto;
-    overflow: hidden;
+.bo {
+  background: url("../../icons/bj2.png") no-repeat;
+  background-size: 100% 100%;
+  height: 100%;
+  padding-top: 2.5rem;
+  .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20%;
   }
-
-  .tips {
-    font-size: 14px;
-    color: #fff;
-    margin-bottom: 10px;
-
-    span {
-      &:first-of-type {
-        margin-right: 16px;
-      }
+}
+.box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .login {
+    box-shadow: -15px 15px 15px rgba(6, 17, 47, 0.7);
+    height: 300px;
+    width: 350px;
+    background: rgba($color: rgb(0, 0, 0), $alpha: 0.4);
+    padding: 40px;
+    border-radius: 10px;
+    .el-input {
+      margin-bottom: 25px;
     }
-  }
-
-  .svg-container {
-    padding: 6px 5px 6px 15px;
-    color: $dark_gray;
-    vertical-align: middle;
-    width: 30px;
-    display: inline-block;
-  }
-
-  .title-container {
-    position: relative;
-
-    .title {
-      font-size: 26px;
-      color: $light_gray;
-      margin: 0px auto 40px auto;
-      text-align: center;
-      font-weight: bold;
-    }
-  }
-
-  .show-pwd {
-    position: absolute;
-    right: 10px;
-    top: 7px;
-    font-size: 16px;
-    color: $dark_gray;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .thirdparty-button {
-    position: absolute;
-    right: 0;
-    bottom: 6px;
-  }
-
-  @media only screen and (max-width: 470px) {
-    .thirdparty-button {
-      display: none;
+    .input {
+      margin: 0;
     }
   }
 }

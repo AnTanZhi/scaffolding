@@ -23,16 +23,22 @@
       <section class="table-container view-section">
         <el-table :header-cell-style="{background:'#F0FAFF',color:'#787878'}" border stripe v-loading="loading"
           element-loading-text="加载中，请稍候……" :data="tableData" tooltip-effect="dark" style="width: 100%" row-key="id"
-          :tree-props="{children: 'childs'}" default-expand-all>
+          :tree-props="{children: 'childs'}">
           <el-table-column label="名称" prop="name" />
           <el-table-column label="备注" prop="remark" />
-          <el-table-column label="操作" width="80" align="center">
+          <el-table-column label="操作" width="130" align="center">
             <template slot-scope="s">
+              <el-tooltip class="item" effect="dark" content="向上" placement="bottom">
+                <i class="el-icon-top" @click="publicMove('bmPX',{id :s.row.id,type:0})" />
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="向下" placement="bottom">
+                <i class="el-icon-bottom" @click="publicMove('bmPX',{id:s.row.id ,type:1})" />
+              </el-tooltip>
               <el-tooltip class="item" effect="dark" content="编辑" placement="bottom">
                 <i class="el-icon-edit-outline" @click="goUpdBuMen(s.row.id)" />
               </el-tooltip>
               <el-tooltip class="item" effect="dark" content="删除" placement="bottom">
-                <i class="el-icon-delete" @click="()=>{publicDel('delBuMen',s.row.id);getDieBuMen()}" />
+                <i class="el-icon-delete" @click="del(s.row.id)" />
               </el-tooltip>
             </template>
           </el-table-column>
@@ -42,7 +48,7 @@
     <el-dialog :title="title" :visible.sync="setDig" width="30%">
       <el-form :model="setParams" label-width="100px" :rules="rules" ref="setParams">
         <el-form-item label="所属父级部门">
-          <el-select v-model="setParams.parentId" clearable>
+          <el-select v-model="setParams.parentId" clearable :disabled="isUpd">
             <el-option v-for="item in dieBuMen" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -75,24 +81,33 @@ export default {
       /* 非空校验 */ rules: {
         name: [{ required: true, message: "请输入部门名称", trigger: "blur" }],
       },
+      /* 修改禁用 */ isUpd: false,
     };
   },
   methods: {
+    /* 删除 */ del(id) {
+      system.delBMCheck(id).then((res) => {
+        if (!res.success) {
+          this.$message.error(res.msg);
+          return;
+        } else {
+          this.publicDel("delBuMen", id);
+          this.getDieBuMen();
+        }
+      });
+    },
     /* 修改部门前置 */ goUpdBuMen(id) {
       system.getBuMenInfo(id).then((res) => {
         res.data.parentId = res.data.parentId == 0 ? "" : res.data.parentId;
         this.setParams = res.data;
-        this.title = "编辑部门";
+        this.title = "修改部门";
         this.setDig = true;
+        this.isUpd = true;
       });
     },
     /* 操作部门 */ setBuMen() {
-      if (this.title == "添加部门")
-        if (this.publicRules("setParams"))
-          this.publicAdd("addBuMen", this.setParams, "");
-      if (this.title == "编辑部门")
-        if (this.publicRules("setParams"))
-          this.publicAdd("updBuMen", this.setParams, "");
+      if (this.publicRules("setParams"))
+        this.publicAdd("addBuMen", this.setParams, "");
     },
     /* 获取所有父级部门 */ getDieBuMen() {
       system.getBuMen({ parentId: 0 }).then((res) => {
@@ -100,6 +115,7 @@ export default {
       });
     },
     /* 添加部门前置 */ goAddBuMen() {
+      this.isUpd = false;
       this.setParams = {};
       this.title = "添加部门";
       this.setDig = true;
@@ -114,6 +130,9 @@ export default {
     },
   },
   mounted() {
+    setTimeout(() => {
+      console.log(this.tableData);
+    }, 1000);
     /* 获取所有父级部门 */ this.getDieBuMen();
     /* 获取部门 */ this.getBuMenShu();
   },

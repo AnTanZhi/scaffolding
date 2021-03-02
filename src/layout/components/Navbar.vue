@@ -7,14 +7,14 @@
     <div class="right-menu">
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper" style="display:flex">
-          <img src="../../icons/money.png" class="user-avatar">
-          <div style="color: white;font-size: 13px;">管理员</div>
+          <img :src="userImg" class="user-avatar">
+          <div style="color: white;font-size: 13px;">{{userInfo.name}}</div>
         </div>
         <el-dropdown-menu slot="dropdown">
           <router-link to="/">
             <el-dropdown-item>首页</el-dropdown-item>
           </router-link>
-          <router-link to="/profile/index">
+          <router-link :to="`/system/setUser?id=${userInfo.id}`">
             <el-dropdown-item>个人信息</el-dropdown-item>
           </router-link>
           <el-dropdown-item divided @click.native="logout">
@@ -23,6 +23,9 @@
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+    <el-drawer title="个人信息" :visible.sync="drawer" direction="rtl">
+      <span>我来啦!</span>
+    </el-drawer>
   </div>
 </template>
 
@@ -46,8 +49,24 @@ export default {
     SizeSelect,
     Search,
   },
+  data() {
+    return {
+      imgInfo: "",
+      drawer: false,
+    };
+  },
   computed: {
-    ...mapGetters(["sidebar", "avatar", "device"]),
+    ...mapGetters([
+      "sidebar",
+      "avatar",
+      "device",
+      "uploadHost",
+      "userInfo",
+      "userImg",
+    ]),
+  },
+  mounted() {
+    console.log(this.userImg);
   },
   methods: {
     toggleSideBar() {
@@ -59,8 +78,10 @@ export default {
         cancelButtonText: "取消",
         type: "warning",
       }).then(() => {
-        let userId = JSON.parse(sessionStorage.getItem("userInfo")).id;
+        this.$store.dispatch("const/getIsLog", true, { root: true });
+        let userId = this.userInfo.id;
         logout(userId).then(() => {
+          this.$router.push("/login");
           this.$message.success("退出成功");
         });
       });

@@ -2,6 +2,9 @@ import Vue from 'vue'
 import Router from 'vue-router'
 Vue.use(Router)
 import xiTongSheZhi from './modules/xiTongSheZhi'
+export const asyncRoutes = [
+  xiTongSheZhi
+]
 export const constantRoutes = [
   {
     path: '/',
@@ -24,7 +27,7 @@ export const constantRoutes = [
     hidden: true
   },
   /* 系统设置 */
-  xiTongSheZhi,
+  // xiTongSheZhi,
 ]
 const createRouter = () => new Router({
   scrollBehavior: () => ({ y: 0 }),

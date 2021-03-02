@@ -1,6 +1,6 @@
 <template>
   <div class="center" id="user-save">
-    <el-form ref="form" :model="setParams" label-width="90px" :rules="rules">
+    <el-form ref="setParams" :model="setParams" label-width="90px" :rules="rules">
       <div class="form_top">
         <div class="top_title">{{ title }}</div>
         <div class="top-section">
@@ -13,39 +13,39 @@
                 <el-input v-model="setParams.password" placeholder="请输入新密码(长度6-16)" type="password" />
               </el-form-item>
               <el-form-item label="确认密码" style="width: 60%" prop="isPassword">
-                <el-input v-model="setParams.isPassword" placeholder="输入确认密码" type="password" />
+                <el-input v-model="ruleForm.pass" placeholder="输入确认密码" type="password" />
               </el-form-item>
               <el-form-item label="状态" class="zt">
-                <el-switch v-model="setParams.state	" style="display: block" active-color="#ff4949"
+                <el-switch v-model="setParams.state	" style="display: block;width:21%" active-color="#ff4949"
                   inactive-color="#13ce66" active-text="锁定" inactive-text="正常" active-value="0" inactive-value="1" />
               </el-form-item>
             </div>
           </div>
           <div class="right">
             <el-form-item label="用户头像">
+              <TouXiang @getImg="getImg" :imgInfo="imgInfo" />
             </el-form-item>
           </div>
         </div>
       </div>
-      <div class="form_body">
+      <div class=" form_body">
         <div class="top_title">扩展信息</div>
         <div class="top_input" style="display: flex; flex-wrap: wrap">
           <div style="width: 50%">
-            <el-form-item label="部门">
-              <el-select v-model="setParams.deptId">
-                <el-option v-for="item in buMen" :key="item.id" :label="item.name" :value="item.id" />
-              </el-select>
+            <el-form-item label="部门" prop="deptId">
+              <BuMen v-model="setParams.deptId" :cle="true" />
             </el-form-item>
           </div>
           <div style="width: 50%">
             <el-form-item label="角色管理" prop="roleIds">
+              <el-select v-model="setParams.roleIds" multiple collapse-tags clearable style="width:230px">
+                <el-option v-for="item in JSSels" :key="String(item.id)" :value="String(item.id)" :label="item.title" />
+              </el-select>
             </el-form-item>
           </div>
           <div style="width: 50%">
-            <el-form-item label="职位">
-              <el-select v-model="setParams.positionId">
-                <el-option v-for="item in zhiWei" :key="item.id" :label="item.name" :value="item.id" />
-              </el-select>
+            <el-form-item label="职位" prop="positionId">
+              <ZhiWei v-model="setParams.positionId" :cle="true" />
             </el-form-item>
           </div>
         </div>
@@ -78,7 +78,7 @@
           </div>
         </div>
         <div style="text-align: center;">
-          <el-button type="primary">确定</el-button>
+          <el-button type="primary" @click="setYH">确定</el-button>
           <el-button @click="$router.back()">返回</el-button>
         </div>
       </div>
@@ -87,60 +87,117 @@
 </template>
 
 <script>
+import BuMen from "@/myComponents/BuMen";
+import ZhiWei from "@/myComponents/ZhiWei";
+import TouXiang from "@/myComponents/TouXiang";
+import publicMixin from "@/mixin/publicMixin";
+import system from "@/api/system";
 import { mapGetters } from "vuex";
+import { isNull } from "@/utils/utils";
 export default {
+  computed: {
+    ...mapGetters(["uploadHost"]),
+  },
   data() {
     var validatePass2 = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("请再次输入密码"));
-      } else if (value !== this.ruleForm.pass) {
+      if (this.ruleForm.pass === "" && !this.$route.query.id)
+        callback(new Error("请输入密码"));
+      else if (this.setParams.password !== this.ruleForm.pass)
         callback(new Error("两次输入密码不一致!"));
-      } else {
-        callback();
-      }
+      else callback();
+    };
+    var validatePass = (rule, value, callback) => {
+      if (isNull(this.setParams.password) && !this.$route.query.id)
+        callback(new Error("请输入密码"));
+      else if (!this.$route.query.id && this.setParams.password.length < 6)
+        callback(new Error("密码长度6位以上"));
+      else callback();
     };
     return {
       /* 自定义校验 */ ruleForm: { pass: "" },
-      /* 用户参数 */ setParams: {},
+      /* 用户参数 */ setParams: { gender: 0, password: "", roleIds: [] },
       /* 校验 */ rules: {
         account: [{ required: true, message: "请输入用户名", trigger: "blur" }],
         isPassword: [{ validator: validatePass2, trigger: "blur" }],
-        password: [
-          { required: true, message: "请输入密码", trigger: "blur" },
-          {
-            min: 6,
-            max: 16,
-            message: "长度在 6 到 16 个字符",
-            trigger: "blur",
-          },
-        ],
+        password: [{ validator: validatePass, trigger: "blur" }],
         phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
         name: [{ required: true, message: "请输入姓名", trigger: "blur" }],
+        deptId: [{ required: true, message: "请选择部门", trigger: "change" }],
+        roleIds: [{ required: true, message: "请选择角色", trigger: "change" }],
+        positionId: [
+          { required: true, message: "请选择职位", trigger: "change" },
+        ],
       },
       /* 表单标题 */ title: "",
       /* 用户名是否禁用 */ isName: false,
+      /* mixin参数 */ mixinParams: { name: "", api: system },
+      /* 角色多选框 */ JSSels: [],
+      /* 图片地址 */ imgInfo: "",
     };
   },
   methods: {
-    /* 部门/职位/角色默认值 */ initMRZ() {
-      setTimeout(() => {
-        this.setParams.positionId = this.zhiWei[0].id;
-        this.setParams.deptId = this.buMen[0].id;
-      }, 500);
+    /* 获取用户信息 */ getYHInfo() {
+      system.getYHInfo(this.$route.query.id).then((res) => {
+        this.setParams = res.data;
+        this.setParams.password = "";
+        this.ruleForm.pass = "";
+        this.setParams.state = this.setParams.state == 1 ? 0 : 1;
+        this.setParams.deptId += "";
+        this.setParams.positionId += "";
+        this.setParams.roleIds = String(this.setParams.roleIds).split(",");
+        if (!isNull(this.setParams.headCode)) {
+          system.getFile(this.setParams.headCode).then((b) => {
+            let url = String(this.uploadHost).split("").reverse().join("");
+            url = url.substring(5);
+            url = url.split("").reverse().join("");
+            this.imgInfo = `${url}${b.data.path}`;
+          });
+        }
+      });
+    },
+    /* 操作用户 */ setYH() {
+      if (this.publicRules("setParams")) {
+        this.setParams.state = this.setParams.state == 1 ? 0 : 1;
+        this.setParams.roleIds = this.setParams.roleIds.join(",");
+        this.btnLoading = true;
+        system.addYH(this.setParams).then((res) => {
+          this.$message.success("操作成功");
+          this.btnLoading = false;
+          system.getFile(res.data.headCode).then((r) => {
+            let url = String(this.uploadHost).split("").reverse().join("");
+            url = url.substring(5);
+            url = url.split("").reverse().join("");
+            console.log(`${url}${r.data.path}`);
+            this.$store.dispatch("const/getUserImg", `${url}${r.data.path}`, {
+              root: true,
+            });
+          });
+          this.$router.push({
+            path: "/system/userInfo",
+          });
+        });
+      }
+    },
+    /* 获取头像 */ getImg(val) {
+      this.setParams.headCode = val.code;
+    },
+    /* 获取角色多选框 */ getJS() {
+      system.getJSAll().then((res) => {
+        this.JSSels = res.data;
+      });
     },
     /* 表单标题赋值 */ setTitle() {
-      this.title = this.$route.query.type == 1 ? "修改用户" : "添加用户";
-      this.isName = this.$route.query.type == 1 ? true : false;
+      this.title = this.$route.query.id ? "修改用户" : "添加用户";
+      this.isName = this.$route.query.id ? true : false;
     },
   },
   mounted() {
-    /* 部门/职位/角色默认值 */ this.initMRZ();
+    /* 修改获取回显 */ if (this.$route.query.id) this.getYHInfo();
+    /* 获取角色多选框 */ this.getJS();
     /* 表单标题赋值 */ this.setTitle();
   },
-  computed: {
-    ...mapGetters(["buMen", "zhiWei"]),
-  },
-  components: {},
+  mixins: [publicMixin],
+  components: { BuMen, ZhiWei, TouXiang },
 };
 </script>
 <style lang="scss">

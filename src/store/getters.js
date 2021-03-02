@@ -13,6 +13,9 @@ const getters = {
   errorLogs: state => state.errorLog.logs,
   uploadHost: state => state.upload.uploadHost,
   buMen: state => state.const.buMen,
-  zhiWei: state => state.const.zhiWei
+  zhiWei: state => state.const.zhiWei,
+  userInfo: state => state.const.userInfo,
+  userImg: state => state.const.userImg,
+  isLog: state => state.const.isLog,
 }
 export default getters

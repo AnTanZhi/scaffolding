@@ -23,16 +23,22 @@
       <section class="table-container view-section">
         <el-table :header-cell-style="{background:'#F0FAFF',color:'#787878'}" border stripe v-loading="loading"
           element-loading-text="加载中，请稍候……" :data="tableData" tooltip-effect="dark" style="width: 100%">
-          <el-table-column type="selection" />
-          <el-table-column type="index" label="序号" align="ceter" width="50" />
+          <el-table-column type="selection" align="center" />
+          <el-table-column type="index" label="序号" align="center" width="50" />
           <el-table-column label="名称" prop="name" />
-          <el-table-column label="操作" align="center" width="100">
+          <el-table-column label="操作" align="center" width="130">
             <template slot-scope="s">
+              <el-tooltip class="item" effect="dark" content="向上" placement="bottom">
+                <i class="el-icon-top" @click="publicMove('zwPX',{id :s.row.id,type:0})" />
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="向下" placement="bottom">
+                <i class="el-icon-bottom" @click="publicMove('zwPX',{id:s.row.id ,type:1})" />
+              </el-tooltip>
               <el-tooltip class="item" effect="dark" content="编辑" placement="bottom">
                 <i class="el-icon-edit-outline" @click="goUpdZhiWei(s.row.id)" />
               </el-tooltip>
               <el-tooltip class="item" effect="dark" content="删除" placement="bottom">
-                <i class="el-icon-delete" @click="publicDel('delZhiWei',s.row.id)" />
+                <i class="el-icon-delete" @click="del(s.row.id)" />
               </el-tooltip>
             </template>
           </el-table-column>
@@ -71,20 +77,26 @@ export default {
     };
   },
   methods: {
+    /* 删除 */ del(id) {
+      system.delZWCheck(id).then((res) => {
+        if (!res.success) {
+          this.$message.error(res.msg);
+          return;
+        } else {
+          this.publicDel("delZhiWei", id);
+        }
+      });
+    },
     /* 修改职位前置 */ goUpdZhiWei(id) {
       system.getZhiWeiInfo(id).then((res) => {
         this.setParams = res.data;
-        this.title = "编辑职位";
+        this.title = "修改职位";
         this.setDig = true;
       });
     },
     /* 操作职位 */ addZhiWei() {
-      if (this.title == "添加职位")
-        if (this.publicRules("setParams"))
-          this.publicAdd("addZhiWei", this.setParams, "");
-      if (this.title == "编辑职位")
-        if (this.publicRules("setParams"))
-          this.publicAdd("updZhiWei", this.setParams, "");
+      if (this.publicRules("setParams"))
+        this.publicAdd("addZhiWei", this.setParams, "");
     },
     /* 添加职位前置 */ goAddZhiWei() {
       this.setParams = {};

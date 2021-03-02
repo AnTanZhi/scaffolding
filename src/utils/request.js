@@ -51,7 +51,8 @@ service.interceptors.response.use(
         break
       default:
     }
-    if (res.data.code == 2) {
+    console.log(store.state.const.isLog, 'store.state.const.isLog')
+    if (res.data.code == 2 && !store.state.const.isLog) {
       callback.reLogin('您的登录已过期，请重新登录')
     }
     return res.data

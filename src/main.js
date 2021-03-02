@@ -16,6 +16,8 @@ import * as filters from './filters'
 // import '@/utils/rem'
 import './utils/rem'
 import 'default-passive-events'
+import huakuai from 'huakuai-vue'
+Vue.use(huakuai)
 Vue.prototype.echarts = echarts
 if (process.env.NODE_ENV === 'production') {
   const { mockXHR } = require('../mock')

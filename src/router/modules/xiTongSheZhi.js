@@ -28,28 +28,35 @@ const xiTongSheZhi = {
       hidden: true
     },
     {
-      path: 'buMen',
+      path: 'deptInfo',
       component: () => import('@/views/system/buMen'),
-      name: 'buMen',
+      name: 'deptInfo',
       meta: { title: '部门管理' }
     },
     {
-      path: 'zhiWei',
+      path: 'posInfo',
       component: () => import('@/views/system/zhiWei'),
-      name: 'zhiWei',
+      name: 'posInfo',
       meta: { title: '职位管理' }
     },
     {
-      path: 'jueSe',
+      path: 'roleInfo',
       component: () => import('@/views/system/jueSe'),
-      name: 'jueSe',
+      name: 'roleInfo',
       meta: { title: '角色管理' }
     },
     {
-      path: 'caiDan',
+      path: 'menuInfo',
       component: () => import('@/views/system/caiDan'),
-      name: 'caiDan',
+      name: 'menuInfo',
       meta: { title: '菜单管理' }
+    },
+    {
+      path: 'setJueSe',
+      component: () => import('@/views/system/setJueSe'),
+      name: 'setJueSe',
+      meta: { title: '操作角色' },
+      hidden: true
     },
   ]
 }

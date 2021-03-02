@@ -11,22 +11,6 @@ export default {
   data() {
     return {};
   },
-  methods: {
-    /* 获取职位下拉框 */ getZhiWeiSel() {
-      system.getZhiWeiSel().then((res) => {
-        this.$store.dispatch("const/getZhiWei", res);
-      });
-    },
-    /* 获取部门下拉框 */ getBuMenSel() {
-      system.getBuMenSel().then((res) => {
-        this.$store.dispatch("const/getBuMen", res);
-      });
-    },
-  },
-  created() {
-    /* 获取职位下拉框 */ this.getZhiWeiSel();
-    /* 获取部门下拉框 */ this.getBuMenSel();
-  },
 };
 </script>
 <style lang="scss">

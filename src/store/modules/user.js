@@ -1,13 +1,14 @@
 import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
+import system from '@/api/system'
 
 const state = {
   token: getToken(),
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  roles: [],
 }
 
 const mutations = {
@@ -36,6 +37,7 @@ const actions = {
       login({ userLogin: username.trim(), password: password }).then(response => {
         sessionStorage.setItem('userInfo', JSON.stringify(response.data))
         const { data } = response
+        commit('const/SET_USERINFO', data, { root: true })
         commit('SET_TOKEN', data.accessToken)
         setToken(data.accessToken)
         resolve(response)
@@ -43,11 +45,19 @@ const actions = {
     })
   },
   // get user info
-  getInfo({ commit, state }) {
+  getInfo({ commit, state, rootState }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
+        console.log(data)
+        commit('const/SET_USERINFO', data, { root: true })
         commit('SET_ROLES', [1, 2, 3, 4])
+        system.getFile(data.headCode).then(r => {
+          let url = String(rootState.upload.uploadHost).split("").reverse().join("");
+          url = url.substring(5);
+          url = url.split("").reverse().join("");
+          commit('const/SET_USERIMG', `${url}${r.data.path}`, { root: true })
+        })
         // this.$router.push('/rongZiCanShu/pinLv')
         resolve(data)
       }).catch(error => {
@@ -86,20 +96,12 @@ const actions = {
   // dynamically modify permissions
   async changeRoles({ commit, dispatch }, role) {
     const token = role + '-token'
-
     commit('SET_TOKEN', token)
     setToken(token)
-
     const { roles } = await dispatch('getInfo')
-
     resetRouter()
-
-    // generate accessible routes map based on roles
     const accessRoutes = await dispatch('permission/generateRoutes', roles, { root: true })
-    // dynamically add accessible routes
     router.addRoutes(accessRoutes)
-
-    // reset visited views and cached views
     dispatch('tagsView/delAllViews', null, { root: true })
   }
 }

@@ -21,7 +21,7 @@ const publicMixin = {
     publicSelect(total = true) {
       this.loading = true
       this.mixinParams.api[this.mixinParams.name](this.selectParams).then(res => {
-        this.tableData = res.data == undefined ? res : res.data.records
+        this.tableData = res.data.records || res.data
         this.loading = false
         if (total) {
           this.total = res.data.total
@@ -37,7 +37,8 @@ const publicMixin = {
      */
     publicMove(name, params) {
       this.mixinParams.api[name](params).then(res => {
-        this.$message.success('排序成功')
+        if (res.msg == 'success') this.$message.success('排序成功')
+        else this.$message.error(res.msg)
         this.publicSelect(true)
       })
     },

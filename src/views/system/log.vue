@@ -8,7 +8,7 @@
           <el-table-column label="IP" prop="ip" width="120" align="center" />
           <el-table-column label="日志类型" prop="modul" />
           <el-table-column label="标题" prop="title" />
-          <el-table-column label="状态" prop="state" width="50" align="center" :formatter="row=>row.state==1?'成功':'失败'" />
+          <el-table-column label="状态" prop="state" width="50" align="center" :formatter="row=>row.state==0?'成功':'失败'" />
           <el-table-column label="消息" prop="content" />
           <el-table-column label="操作时间" prop="createTime" width="160" align="center" />
         </el-table>
