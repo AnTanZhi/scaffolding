@@ -2,6 +2,7 @@ import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 import system from '@/api/system'
+import { MessageBox, Message } from 'element-ui';
 
 const state = {
   token: getToken(),
@@ -9,6 +10,7 @@ const state = {
   avatar: '',
   introduction: '',
   roles: [],
+  onlineId: ""
 }
 
 const mutations = {
@@ -26,6 +28,9 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
+  },
+  SET_ONLINEID: (state, onlineId) => {
+    state.onlineId = onlineId
   }
 }
 
@@ -45,11 +50,10 @@ const actions = {
     })
   },
   // get user info
-  getInfo({ commit, state, rootState }) {
+  getInfo({ commit, state, rootState, dispatch }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
-        console.log(data)
         commit('const/SET_USERINFO', data, { root: true })
         commit('SET_ROLES', [1, 2, 3, 4])
         system.getFile(data.headCode).then(r => {
@@ -57,6 +61,8 @@ const actions = {
           url = url.substring(5);
           url = url.split("").reverse().join("");
           commit('const/SET_USERIMG', `${url}${r.data.path}`, { root: true })
+          /* 链接Websocket */
+          connectWebsocket(data, rootState.upload.uploadHost, { dispatch, commit })
         })
         // this.$router.push('/rongZiCanShu/pinLv')
         resolve(data)
@@ -73,11 +79,9 @@ const actions = {
         commit('SET_ROLES', [])
         removeToken()
         resetRouter()
-
-        // reset visited views and cached views
-        // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
+        closeWebSocket()
         dispatch('tagsView/delAllViews', null, { root: true })
-
+        router.push('/login')
         resolve()
       }).catch(error => {
         reject(error)
@@ -103,6 +107,59 @@ const actions = {
     const accessRoutes = await dispatch('permission/generateRoutes', roles, { root: true })
     router.addRoutes(accessRoutes)
     dispatch('tagsView/delAllViews', null, { root: true })
+  }
+}
+const closeWebSocket = () => {
+  console.log('准备断开')
+  if (window.webSocket) {
+    console.log('断开链接')
+    window.webSocket.close()
+  }
+}
+const connectWebsocket = (data, url, { dispatch, commit }) => {
+  if ('WebSocket' in window) {
+    url = url.substring(7)
+    url = url.split('')
+    url = url.splice(0, url.length - 5);
+    url = url.join('')
+    console.log(url, '-0-0-')
+    window.webSocket = new WebSocket(
+      `ws://${url}/websocket/${data.id}`
+    )
+    window.webSocket.onopen = (event) => {
+      console.log('ws://${url}/websocket/${userId}已连接', event)
+    }
+    window.webSocket.onmessage = function (event) {
+      console.log('收到推送', event.data)
+      handleMessage(JSON.parse(event.data), { dispatch, commit })
+    }
+  }
+}
+const handleMessage = (data, { dispatch, commit }) => {
+  switch (Number(data.type)) {
+    /* 消息提示 */
+    case 0:
+      Message({
+        type: 'info',
+        message: data.message,
+        duration: 0,
+        showClose: true
+      })
+      break
+    /* 踢出 */
+    case 1:
+      console.log('账号在其他地方登录')
+      MessageBox.alert('您的账号已在其他地方登录', '下线通知', {
+        confirmButtonText: '确定',
+        callback: action => {
+          dispatch('user/logout', null, { root: true })
+        }
+      })
+      break
+    /* 在线用户的id */
+    case 3:
+      commit('SET_ONLINEID', data.message)
+      break
   }
 }
 

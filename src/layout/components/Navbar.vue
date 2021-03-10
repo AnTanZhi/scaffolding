@@ -73,19 +73,20 @@ export default {
       this.$store.dispatch("app/toggleSideBar");
     },
     logout() {
-      this.$confirm("确定要退出登录吗?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }).then(() => {
-        this.$store.dispatch("const/getIsLog", true, { root: true });
-        let userId = this.userInfo.id;
-        logout(userId).then(() => {
-          this.$router.push("/login");
-          this.$message.success("退出成功");
-        });
-      });
-      removeToken();
+      this.$store.dispatch("user/logout", true, { root: true });
+      // this.$confirm("确定要退出登录吗?", "提示", {
+      //   confirmButtonText: "确定",
+      //   cancelButtonText: "取消",
+      //   type: "warning",
+      // }).then(() => {
+      //   this.$store.dispatch("const/getIsLog", true, { root: true });
+      //   let userId = this.userInfo.id;
+      //   logout(userId).then(() => {
+      //     removeToken();
+      //     this.$router.push("/login");
+      //     this.$message.success("退出成功");
+      //   });
+      // });
     },
   },
 };

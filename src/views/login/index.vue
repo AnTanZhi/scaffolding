@@ -2,7 +2,7 @@
   <div class="bo">
     <div style="color:#fff" class="logo">
       <span style="margin-right:20px"><img src="../../icons/下载.png" alt="" /></span>
-      <span style="font-size:30px;letter-spacing: 5px;">远颂科技有限公司</span>
+      <span style="font-size:30px;letter-spacing: 5px;">远颂科技</span>
     </div>
     <div class="box">
       <div class="login">
@@ -209,35 +209,5 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-.bo {
-  background: url("../../icons/bj2.png") no-repeat;
-  background-size: 100% 100%;
-  height: 100%;
-  padding-top: 2.5rem;
-  .logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 20%;
-  }
-}
-.box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  .login {
-    box-shadow: -15px 15px 15px rgba(6, 17, 47, 0.7);
-    height: 300px;
-    width: 350px;
-    background: rgba($color: rgb(0, 0, 0), $alpha: 0.4);
-    padding: 40px;
-    border-radius: 10px;
-    .el-input {
-      margin-bottom: 25px;
-    }
-    .input {
-      margin: 0;
-    }
-  }
-}
+@import "../../styles/login.scss";
 </style>

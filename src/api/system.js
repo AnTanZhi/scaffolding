@@ -308,4 +308,12 @@ export default {
       method: 'GET'
     })
   },
+  /* 获取当前登陆人菜单 */
+  sendMessage(params) {
+    return request({
+      url: `user/sendMsg/${params.id}`,
+      method: 'POST',
+      params
+    })
+  },
 }

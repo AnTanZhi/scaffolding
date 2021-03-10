@@ -7,7 +7,7 @@
             <div style="display:flex;justify-content: space-between;">
               <div>
                 <el-form-item>
-                  <el-input v-model="selectParams.roleName" placeholder="角色名称" clearable />
+                  <el-input v-model="selectParams.roleName" placeholder="角色名称" clearable @input="getJS" />
                 </el-form-item>
               </div>
               <div style="text-align: end;">
@@ -94,7 +94,7 @@ export default {
         cd.forEach((item) => {
           if (item.url == "system") {
             item.children.forEach((itemm) => {
-              if (itemm.url == "setJueSe") {
+              if (itemm.url == "setRole") {
                 setJueSe = itemm;
               }
             });
@@ -102,7 +102,7 @@ export default {
         });
       if (setJueSe.isHasSys == 1)
         this.$router.push({
-          path: "/system/setJueSe",
+          path: "/system/setRole",
           query: { id },
         });
       else this.$message.error("您没有对角色操作的权限");

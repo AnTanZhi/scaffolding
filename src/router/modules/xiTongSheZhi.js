@@ -52,11 +52,17 @@ const xiTongSheZhi = {
       meta: { title: '菜单管理' }
     },
     {
-      path: 'setJueSe',
+      path: 'setRole',
       component: () => import('@/views/system/setJueSe'),
-      name: 'setJueSe',
+      name: 'setRole',
       meta: { title: '操作角色' },
       hidden: true
+    },
+    {
+      path: 'chatroom',
+      component: () => import('@/views/system/chatroom'),
+      name: 'chatroom',
+      meta: { title: '聊天室' },
     },
   ]
 }

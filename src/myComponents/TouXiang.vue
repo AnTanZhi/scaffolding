@@ -2,7 +2,7 @@
   <el-upload class="avatar-uploader" :action="`${uploadHost}file/uploadFile`" :show-file-list="false"
     :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :headers="{token:toKenInfo}">
     <img v-if="imageUrl" :src="imageUrl" class="avatar">
-    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+    <i v-else class="el-icon-plus avatar-uploader-icon" />
   </el-upload>
 </template>
 
@@ -31,7 +31,9 @@ export default {
       this.imageUrl = URL.createObjectURL(file.raw);
     },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === "image/jpeg" || "image/png type";
+      let isJPG = false;
+      if (file.type === "image/jpeg" || file.type === "image/png type")
+        isJPG = true;
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isJPG) {
         this.$message.error("上传头像图片只能是 JPG/PNG 格式!");

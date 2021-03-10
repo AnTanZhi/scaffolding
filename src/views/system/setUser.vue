@@ -120,7 +120,7 @@ export default {
         account: [{ required: true, message: "请输入用户名", trigger: "blur" }],
         isPassword: [{ validator: validatePass2, trigger: "blur" }],
         password: [{ validator: validatePass, trigger: "blur" }],
-        phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
+        mobile: [{ required: true, message: "请输入手机号", trigger: "blur" }],
         name: [{ required: true, message: "请输入姓名", trigger: "blur" }],
         deptId: [{ required: true, message: "请选择部门", trigger: "change" }],
         roleIds: [{ required: true, message: "请选择角色", trigger: "change" }],
@@ -156,7 +156,13 @@ export default {
       });
     },
     /* 操作用户 */ setYH() {
+      let phonePattern = /^1[3-9]\d{9}$/;
+      let mobile = this.setParams.mobile;
       if (this.publicRules("setParams")) {
+        if (!phonePattern.test(mobile)) {
+          this.$message.error("手机号格式不正确");
+          return false;
+        }
         this.setParams.state = this.setParams.state == 1 ? 0 : 1;
         this.setParams.roleIds = this.setParams.roleIds.join(",");
         this.btnLoading = true;
@@ -167,7 +173,6 @@ export default {
             let url = String(this.uploadHost).split("").reverse().join("");
             url = url.substring(5);
             url = url.split("").reverse().join("");
-            console.log(`${url}${r.data.path}`);
             this.$store.dispatch("const/getUserImg", `${url}${r.data.path}`, {
               root: true,
             });
@@ -195,6 +200,12 @@ export default {
     /* 修改获取回显 */ if (this.$route.query.id) this.getYHInfo();
     /* 获取角色多选框 */ this.getJS();
     /* 表单标题赋值 */ this.setTitle();
+  },
+  watch: {
+    $route() {
+      this.getJS();
+      this.getYHInfo();
+    },
   },
   mixins: [publicMixin],
   components: { BuMen, ZhiWei, TouXiang },
